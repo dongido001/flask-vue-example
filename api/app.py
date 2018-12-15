@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect
 from flask_mongoengine import MongoEngine, MongoEngineSessionInterface
 from werkzeug.security import generate_password_hash, check_password_hash
-from waitress import serve
+# from waitress import serve
 
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VideoGrant
@@ -25,17 +25,21 @@ app.config['MONGODB_PASSWORD'] = os.getenv("MONGODB_PASSWORD", "")
 db = MongoEngine(app)
 jwt = JWTManager(app)
 
-from documents import User
+from documents import User, Role
 
 @app.route('/')
+@app.route('/api')
 def index():
     return jsonify([
 
     ])
 
 # TODO. add @jwt_required
-@app.route('/generate_video_token', methods=['POST'])
+@app.route('/api/generate_video_token', methods=['POST'])
+# @jwt_required
 def generate_video_token():
+
+    # current_user = get_jwt_identity()
 
     # required for all twilio access tokens
     account_sid = os.getenv('TWILIO_ACCOUNT_SID')
@@ -53,19 +57,19 @@ def generate_video_token():
 
     # Return token info as JSON
     return jsonify({
-        'token': str(token.to_jwt())
+        'token': token.to_jwt().decode()
     })
 
 
 @jwt.user_claims_loader
 def add_claims_to_access_token(user):
-    return {'roles': user['role']}
+    return {'role': user['role']}
 
 @jwt.user_identity_loader
 def user_identity_lookup(user):
-    return user['username']
+    return user['email']
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     if not request.is_json:
         return jsonify({
@@ -73,43 +77,82 @@ def login():
             "msg": "Missing JSON in request",
         }), 400
 
-    username = request.json.get('username', None)
+    email = request.json.get('email', None)
     password = request.json.get('password', None)
 
-    if not username:
-        return jsonify({"msg": "Missing username parameter"}), 400
+    if not email:
+        return jsonify({"msg": "Missing email parameter"}), 400
     if not password:
         return jsonify({"msg": "Missing password parameter"}), 400
 
-    _user = User.objects(username=username).first()
+    _user = User.objects(email=email).first()
 
     if not _user or not _user.check_password_hash(password):
-        return jsonify({"msg": "Bad username or password"}), 401
+        return jsonify({"msg": "Bad email or password"}), 401
 
     user_data = {
-        'username': 'test',
-        'role': 'Admin'
+        'email': email,
+        'role': _user.role
     }
 
     access_token = create_access_token(identity=user_data)
-    return jsonify(access_token=access_token), 200
+    return jsonify(access_token=access_token, status="success"), 200
 
+@app.route('/api/add_user', methods=['POST'])
+def add_new_user():
+    if not request.is_json:
+        return jsonify({
+            "status": "error",
+            "msg": "Missing JSON in request",
+        }), 400
 
-@app.route('/protected', methods=['GET'])
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
+    first_name = request.json.get('first_name', None)
+    last_name = request.json.get('last_name', None)
+    title = request.json.get('title', None)
+
+    if not email:
+        return jsonify({"msg": "Missing email parameter"}), 400
+    if not password:
+        return jsonify({"msg": "Missing password parameter"}), 400
+    if not first_name:
+        return jsonify({"msg": "Missing first_name parameter"}), 400
+    if not last_name:
+        return jsonify({"msg": "Missing last_name parameter"}), 400
+    if not title:
+        return jsonify({"msg": "Missing title parameter"}), 400
+
+    _user = User.objects(email=email).first()
+
+    if _user:
+        return jsonify({"msg": "User with that email already exists"}), 401
+    
+    new_user = User(email=email, password=generate_password_hash(password), 
+                    first_name=first_name, last_name=last_name, title=title, role="player")
+    new_user.save()
+
+    user_data = {
+        'email': 'test',
+        'role': 'player'
+    }
+
+    access_token = create_access_token(identity=user_data)
+    return jsonify(access_token=access_token, status="success"), 200
+    
+@app.route('/api/protected', methods=['GET'])
 @jwt_required
 def protected():
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
 
-@app.route('/add_user')
-def add_user():
-    # new_user = User()
-    # new_user.username = 'test'
-    # new_user.password = generate_password_hash('test')
-        
-    # new_user.save()
+@app.route('/api/add_role')
+def add_role():
+    # new_role1 = Role(role="player")
+    # new_role2 = Role(role="admin")
+    # new_role3 = Role(role="facilitator")
+    # new_role1.save(); new_role2.save(); new_role3.save(); 
 
-    # print(new_user)
     pass
 
 if __name__ == '__main__':

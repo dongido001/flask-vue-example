@@ -1,32 +1,49 @@
 <template>
-    <div class="col-md-3 rooms">
-        <div class="room" v-for="room in rooms" v-bind:key="room.id" @click="showRoom(room.name)">
-            {{room.name}}
-        </div>
-        <AddRoom />
-    </div>
+    <v-card class="card-margin-bottom">
+        <v-toolbar color="orange lighten-1" dark>
+            <v-toolbar-title>Team</v-toolbar-title>
+        </v-toolbar>
+        <v-list two-line>
+            <template v-for="(room, index) in rooms">
+                <v-list-tile :key="index" avatar ripple @click="showRoom(room.name)">
+                    <v-list-tile-avatar>
+                        <img :src="room.avatar">
+                    </v-list-tile-avatar>
+                    <v-list-tile-content>
+                        <v-list-tile-title>{{room.name}}</v-list-tile-title>
+                        <v-list-tile-sub-title>{{room.name}}</v-list-tile-sub-title>
+                    </v-list-tile-content>
+                </v-list-tile>
+            </template>
+        </v-list>
+    </v-card>
 </template>
 
 <script>
-import { EventBus } from '../Event'
+import { EventBus } from '../../Event'
 import axios from 'axios'
-import AddRoom from '../components/AddRoom'
 
 export default {
   name: "Rooms",
   data() {
     return {
         rooms: [
-            {id: 1, name: 'PHP Room'},
-            {id: 2, name: 'Python Room'},
-            {id: 3, name: 'Daily standup'}
+            {
+                id: 1, name: 'The Winners', avatar: 'https://picsum.photos/250/300?image=783',
+            },
+            {
+                id: 2, name: 'Remote Control', avatar: 'https://picsum.photos/250/300?image=783',
+            },
+            {
+                id: 3, name: 'Team Fabulous', avatar: 'https://picsum.photos/250/300?image=783',
+            },
+            {
+                id: 4, name: 'Slow Down', avatar: 'https://picsum.photos/250/300?image=783',
+            }
         ],
-        roomCount: 3,
+        roomCount: 4,
         loading: false,
     }
-  },
-  components: {
-   AddRoom  
   },
   created() {
     EventBus.$on('new_room', (data) => {
@@ -36,6 +53,7 @@ export default {
   },
   methods: {
     showRoom(room) {
+        console.log(room)
         EventBus.$emit('show_room', room);
     }
   }
@@ -44,16 +62,8 @@ export default {
 </script>
 
 <style scoped>
-    .rooms > .room {
-        border: 1px solid rgb(124, 129, 124);
-        padding: 13px;
-        margin: 3px 0px;
-        color: ghostwhite;
-    }
-
-    .rooms {
-      border: 1px solid rgb(64, 68, 64);
-      cursor: pointer;
-    }
+  .card-margin-bottom {
+      margin-bottom: 10px;
+  }
 </style>
 
