@@ -5,7 +5,13 @@
         </v-toolbar>
         <v-list two-line>
             <template v-for="(room, index) in rooms">
-                <v-list-tile :key="index" avatar ripple @click="showRoom(room.name)">
+                <v-list-tile 
+                    :key="index" 
+                    avatar 
+                    ripple 
+                    @click="showRoom(room.name)"
+                    :class=" (active_room == room.name) ? 'nav-active': '' "
+                >
                     <v-list-tile-avatar>
                         <img :src="room.avatar">
                     </v-list-tile-avatar>
@@ -27,6 +33,7 @@ export default {
   name: "Rooms",
   data() {
     return {
+        active_room: null,
         rooms: [
             {
                 id: 1, name: 'The Winners', avatar: 'https://picsum.photos/250/300?image=783',
@@ -53,7 +60,7 @@ export default {
   },
   methods: {
     showRoom(room) {
-        console.log(room)
+        this.active_room = room
         EventBus.$emit('show_room', room);
     }
   }
@@ -64,6 +71,9 @@ export default {
 <style scoped>
   .card-margin-bottom {
       margin-bottom: 10px;
+  }
+  .nav-active {
+    background: rgb(201, 199, 199);  
   }
 </style>
 
