@@ -1,34 +1,20 @@
 <template>
   <v-app>
-    <Dashboard v-if="authenticated" :email="email"/>
-    <Login
-       v-else 
-       v-on:authenticated="setAuthenticated"
-    />
+    <router-view></router-view>
   </v-app>
 </template>
 
 <script>
 import { EventBus } from '../Event'
-import Twilio, { connect, createLocalTracks, createLocalVideoTrack } from 'twilio-video'
-import axios from 'axios'
-
-import Dashboard from './components/Dashboard'
-import Login from './components/Login'
 
 export default {
   name: 'App',
-  components: {
-    Dashboard,
-    Login
-  },
   data () {
     return {
       authenticated: false,
       email: null,
     }
   },
-  props: ['username'],
   methods: {
     setAuthenticated(access_token, email) {
       localStorage.auth = access_token

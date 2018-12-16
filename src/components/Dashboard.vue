@@ -130,6 +130,8 @@ export default {
     // from the room, if joined.
     window.addEventListener('beforeunload', this.leaveRoomIfJoined);
 
+    console.log(this.$http)
+
   },
   methods: {
     setAuthenticated(access_token) {

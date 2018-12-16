@@ -27,13 +27,12 @@
 </template>
 
 <script>
-  import axios from 'axios'
+  import { mapMutations } from 'vuex'
 
   export default {
     data: () => ({
       email: "",
       password: "",
-      drawer: null,
       loading: false
     }),
     props: {
@@ -42,15 +41,21 @@
     methods: {
         login() {
             this.loading = true;
-            axios
+            this.$http
                 .post("/api/login", {
                     email: this.email,
                     password: this.password
                 })
                 .then(response => {
                     if (response.data.status == "success") {
+                        const access_token = response.data.access_token
                         this.proccessing = false;
-                        this.$emit("authenticated", response.data.access_token, this.email);
+
+                        this.$emit("authenticated", access_token, this.email);
+                        this.updateAccessToken(access_token)
+                        this.updateLoggedUserEmail(this.email)
+
+                        this.$router.push('/')
                     } else {
                         this.message = "Login Faild, try again";
                     }
@@ -59,10 +64,14 @@
                     this.message = "Login Faild, try again";
                     this.proccessing = false;
                 });
-        }
+        },
+        ...mapMutations({
+          updateLoggedUserEmail: 'updateLoggedUserEmail',
+          updateAccessToken: 'updateAccessToken', // map this.updateAccessToken(access_token) 
+                                                  // to this.$store.commit('updateAccessToken', access_token)
+        })
     },
     created() {
-        
     }
   }
 </script>
