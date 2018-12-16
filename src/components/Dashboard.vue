@@ -23,7 +23,14 @@
                 <v-card dark tile flat color="" class="card-height">
                     <v-toolbar-title>Team Video Feed</v-toolbar-title>
                     <v-card-text>
-                        <div id="team-video"></div>
+                        <v-progress-circular
+                          :size="70"
+                          :width="7"
+                          indeterminate
+                          v-if="video_room_loading"
+                          class="video-loading"
+                        ></v-progress-circular>
+                        <div id="team-video" v-else></div>
                     </v-card-text>
                 </v-card>
 
@@ -77,13 +84,29 @@
                 <v-card dark tile flat color="red darken-4" class="card-height">
                     <v-toolbar-title>Master Video Feed</v-toolbar-title>
                     <v-card-text>
-                        <div id="master-video"></div>
+                        <v-progress-circular
+                          :size="70"
+                          :width="7"
+                          indeterminate
+                          v-if="video_room_loading"
+                          class="video-loading"
+                        ></v-progress-circular>
+                        <div id="master-video" v-else></div>
                     </v-card-text>
                 </v-card>
 
                 <v-card dark tile flat color="red darken-4" class="card-height">
                     <v-toolbar-title>Game Play</v-toolbar-title>
-                    <v-card-text>#2</v-card-text>
+                    <v-card-text>
+                       <v-progress-circular
+                          :size="70"
+                          :width="7"
+                          indeterminate
+                          v-if="video_room_loading"
+                          class="video-loading"
+                        ></v-progress-circular>
+                        <span v-else> %444 </span>
+                    </v-card-text>
                 </v-card>
             </v-flex>
 
@@ -108,6 +131,8 @@ import axios from 'axios'
 import Rooms from './Rooms'
 import Footer from './Footer'
 
+const ROOM = null
+
 export default {
   name: 'App',
   components: {
@@ -120,25 +145,7 @@ export default {
   data () {
     return {
       authenticated: true,
-      test: null,
-        drawer: false,
-        drawerRight: false,
-        right: null,
-        left: null,
-        items: [
-        {
-          avatar: 'https://picsum.photos/250/300?image=660',
-          title: 'Meeting @ Noon',
-          subtitle:
-            "I'll be in your neighborhood"
-        },
-        {
-          avatar: 'https://picsum.photos/250/300?image=783',
-          title: 'Yes yes',
-          subtitle:
-            "Do you have Paris recommendations"
-        },
-      ]
+      video_room_loading: false,
     }
   },
   props: ['email'],
@@ -284,8 +291,7 @@ export default {
                     Video.createLocalVideoTrack().then(track => {
                       console.group(track)
                       let localMediaContainer = document.getElementById('master-video');
-                       const test = track.attach();
-                      localMediaContainer.appendChild(test);
+                      localMediaContainer.appendChild(track.attach());
 
                       VueThis.localTrack = true;
                     });
@@ -358,5 +364,9 @@ export default {
   }
   .input-form {
     clear: both;
+  }
+  .video-loading {
+    margin-top: auto; 
+    margin-top: 13%;
   }
 </style>
