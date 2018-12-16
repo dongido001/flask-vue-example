@@ -133,8 +133,10 @@ def add_new_user():
     if _user:
         return jsonify({"msg": "User with that email already exists"}), 401
     
+    _role = Role.objects(role="player").first()
+
     new_user = User(email=email, password=generate_password_hash(password), 
-                    first_name=first_name, last_name=last_name, title=title, role="player")
+                    first_name=first_name, last_name=last_name, title=title, role=_role.id)
     new_user.save()
 
     user_data = {
