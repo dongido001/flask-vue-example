@@ -61,7 +61,7 @@ The above command will open a server running at [http://localhost:8080](http://l
     $ flask run
     ```
 
-This will start a server that is running at http://localhost:5000/ (You don't need to worry about this, Vue already knows about it and will connect to it authomaticall. You should also leave it running while you develop)
+This will start a server that is running at http://localhost:5000/ (You don't need to worry about this, Vue already knows about it and will connect to it automatically. You should also leave it running while you develop)
 
 ### For production
 
