@@ -38,6 +38,7 @@
                   :messages="chat_messages" 
                   v-on:new-message="addMessage" 
                   :chat_loading="chat_loading"
+                  :email="email"
                 />
             </v-flex>
 
