@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify, render_template, redirect
+from flask import Flask, request, jsonify, render_template, redirect, send_file
 from flask_mongoengine import MongoEngine, MongoEngineSessionInterface
 from werkzeug.security import generate_password_hash, check_password_hash
 # from waitress import serve
 
 from twilio.jwt.access_token import AccessToken
-from twilio.jwt.access_token.grants import VideoGrant
+from twilio.jwt.access_token.grants import VideoGrant, ChatGrant
 
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -14,7 +14,9 @@ from flask_jwt_extended import (
 import pprint
 import os
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_folder='../dist', static_url_path='')
+
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
 app.config['DEBUG'] = True
 app.config['MONGODB_DB'] = os.getenv("MONGODB_DB", "vb")
@@ -25,14 +27,13 @@ app.config['MONGODB_PASSWORD'] = os.getenv("MONGODB_PASSWORD", "")
 db = MongoEngine(app)
 jwt = JWTManager(app)
 
-from documents import User, Role
+from .documents import User, Role
 
 @app.route('/')
 @app.route('/api')
 def index():
-    return jsonify([
-
-    ])
+    entry = os.path.join('../dist/', 'index.html')
+    return send_file(entry)
 
 # TODO. add @jwt_required
 @app.route('/api/generate_video_token', methods=['POST'])
@@ -45,6 +46,7 @@ def generate_video_token():
     account_sid = os.getenv('TWILIO_ACCOUNT_SID')
     api_key = os.getenv('TWILIO_API_KEY')
     api_secret = os.getenv('TWILIO_API_SECRET')
+    service_id = os.getenv('TWILIO_SERVICE_ID')
 
     identity = request.json.get('identity')
 
@@ -53,7 +55,9 @@ def generate_video_token():
 
     # Create a Video grant and add to token
     video_grant = VideoGrant()
+    chat_grant = ChatGrant(service_id)
     token.add_grant(video_grant)
+    token.add_grant(chat_grant)
 
     # Return token info as JSON
     return jsonify({

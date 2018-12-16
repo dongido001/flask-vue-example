@@ -103,6 +103,7 @@
 <script>
 import { EventBus } from '../../Event'
 import Video from 'twilio-video'
+const Chat = require('twilio-chat')
 import axios from 'axios'
 import Rooms from './Rooms'
 import Footer from './Footer'
@@ -223,6 +224,19 @@ export default {
             
             // remove any remote track when joining a new room
             // document.getElementById('remoteTrack').innerHTML = ""; 
+
+            Chat.Client.create( token )
+                .then( (client) => {
+                    client.getPublicChannelDescriptors()
+                        .then( channels => {
+                             console.log(channels)
+                            // this.channels = channels.state.items 
+                        });
+
+                        console.log(client)
+
+                    // Client = client;
+                });
 
             Video.connect(token , connectOptions).then(function(room) {
                 // console.log('Successfully joined a Room: ', room);
