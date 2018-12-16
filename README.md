@@ -15,6 +15,10 @@ Live URL: [https://game-wire.herokuapp.com/](https://game-wire.herokuapp.com/)
 
  (If you are using `npm`, anywhere you see `yarn`, change it to `npm`)
 
+ Once you have the MongoDB installed, start it up. By default it should be running at `localhost` and on port `27017`.
+  
+   On linux or mac, you can start MongoDB using - `$ sudo mongod`
+   
 2. Then clone the repository to your local machine:
 
     ```bash
