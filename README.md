@@ -91,3 +91,6 @@ And that's it, this will create a new folder named `dist` that contains our Java
 
 ## Important links
 - [Twilio Programmable Chat documentation](https://media.twiliocdn.com/sdk/js/chat/releases/3.0.2/docs/index.html)
+- [Twilio Programmable Video chat](https://media.twiliocdn.com/sdk/js/video/releases/1.11.1/docs/RemoteVideoTrackStats.html#toc1__anchor)
+- [Material Framework - Vuetify](https://vuetifyjs.com/en/)
+- [MongoEngine Documentation - MongoDB ORM](http://mongoengine.org/) - [Flask-mongoDB](https://flask-pymongo.readthedocs.io/en/latest/)
