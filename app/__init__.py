@@ -24,6 +24,7 @@ app.config['MONGODB_HOST'] = os.getenv("MONGODB_HOST", "localhost")
 app.config['MONGODB_PORT'] = int(os.getenv("MONGODB_PORT", 27017))
 app.config['MONGODB_USERNAME'] = os.getenv("MONGODB_USERNAME", "")
 app.config['MONGODB_PASSWORD'] = os.getenv("MONGODB_PASSWORD", "")
+
 db = MongoEngine(app)
 jwt = JWTManager(app)
 
