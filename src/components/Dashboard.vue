@@ -116,7 +116,6 @@
     <v-navigation-drawer
       right
       temporary
-      v-model="right"
       fixed
     ></v-navigation-drawer>
     <Footer />
@@ -131,8 +130,6 @@ import axios from 'axios'
 import Rooms from './Rooms'
 import Footer from './Footer'
 
-const ROOM = null
-
 export default {
   name: 'App',
   components: {
@@ -144,8 +141,13 @@ export default {
     },
   data () {
     return {
+      chat: null,
       authenticated: true,
       video_room_loading: false,
+      active_room: null,
+      video_client: null,
+      chat_client: null,
+      room_name: null
     }
   },
   props: ['email'],
@@ -198,8 +200,8 @@ export default {
     },
     // Leave Room.
     leaveRoomIfJoined() {
-        if (this.activeRoom) {
-            this.activeRoom.disconnect();
+        if (this.active_room) {
+            this.active_room.disconnect();
         }
     },
     createChat(room_name) {
@@ -209,14 +211,12 @@ export default {
 
         this.getAccessToken().then( (data) => {
 
-            console.log(data)
-            
             if (data.status != 200) {
                return 
             } 
 
-            this.loading = true
-            VueThis.roomName = null
+            this.video_room_loading = true
+            VueThis.room_name = null
 
             const token = data.data.token
 
@@ -235,72 +235,64 @@ export default {
             Chat.Client.create( token )
                 .then( (client) => {
                     client.getPublicChannelDescriptors()
-                        .then( channels => {
-                             console.log(channels)
-                            // this.channels = channels.state.items 
-                        });
-
-                        console.log(client)
-
-                    // Client = client;
+                        .then( channels => { /*this.channels = channels.state.items } */ });
+                    this.chat_client = client;
                 });
 
-            Video.connect(token , connectOptions).then(function(room) {
-                // console.log('Successfully joined a Room: ', room);
-                VueThis.dispatchLog('Successfully joined a Room: '+ room_name);
+            Video.connect(token , connectOptions).then( room => {
+
+                this.dispatchLog('Successfully joined a Room: '+ room_name);
 
                 // set active toom
-                VueThis.activeRoom = room;
-
-                VueThis.roomName = room_name;
-                
-                VueThis.loading = false
+                this.active_room = room;
+                this.room_name = room_name;
+                this.video_room_loading = false
 
                 // Attach the Tracks of the Room's Participants.
                 room.participants.forEach(function(participant) {
                     console.log(participant)
                     let previewContainer = document.getElementById('team-video');
-                    VueThis.attachParticipantTracks(participant, previewContainer);
+                    this.attachParticipantTracks(participant, previewContainer);
                 });
 
                 // When a Participant joins the Room, log the event.
                 room.on('participantConnected', function(participant) {
-                    VueThis.dispatchLog("Joining: '" + participant.identity + "'");
+                    this.dispatchLog("Joining: '" + participant.identity + "'");
                 });
 
                 // When a Participant adds a Track, attach it to the DOM.
                 room.on('trackSubscribed', function(track, participant) {
-                    VueThis.dispatchLog(participant.identity + " added track: " + track.kind);
+                    this.dispatchLog(participant.identity + " added track: " + track.kind);
                     let previewContainer = document.getElementById('team-video');
-                    VueThis.attachTracks([track], previewContainer);
+                    this.attachTracks([track], previewContainer);
                 });
                 
                 // When a Participant removes a Track, detach it from the DOM.
                 room.on('trackUnsubscribed', function(track, participant) {
-                    VueThis.dispatchLog(participant.identity + " removed track: " + track.kind);
-                    VueThis.detachTracks([track]);
+                    this.dispatchLog(participant.identity + " removed track: " + track.kind);
+                    this.detachTracks([track]);
                 });
 
                 // When a Participant leaves the Room, detach its Tracks.
                 room.on('participantDisconnected', function(participant) {
-                    VueThis.dispatchLog("Participant '" + participant.identity + "' left the room");
-                    VueThis.detachParticipantTracks(participant);
+                    this.dispatchLog("Participant '" + participant.identity + "' left the room");
+                    this.detachParticipantTracks(participant);
                 });
 
-                if(!VueThis.localTrack) {
+                if(!this.localTrack) {
                     Video.createLocalVideoTrack().then(track => {
                       console.group(track)
                       let localMediaContainer = document.getElementById('master-video');
                       localMediaContainer.appendChild(track.attach());
 
-                      VueThis.localTrack = true;
+                      this.localTrack = true;
                     });
                 }
             }, function(error) {
                 console.error('Unable to connect to Room: ' +  error.message);
             });
 
-          }) ;
+          });
      },
      dispatchLog(message) {
         EventBus.$emit('new_log', message);

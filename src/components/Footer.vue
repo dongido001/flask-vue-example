@@ -10,12 +10,10 @@
     >
       <v-card-text>
         <v-btn
-          v-for="icon in icons"
-          :key="icon"
           class="mx-3 white--text"
           icon
         >
-          <v-icon size="24px">{{ icon }}</v-icon>
+          <v-icon size="24px"> </v-icon>
         </v-btn>
       </v-card-text>
 
@@ -37,7 +35,7 @@ export default {
   name: "Footer",
 }
 </script>
-
+  
 <style>
 
 </style>
