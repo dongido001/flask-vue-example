@@ -18,7 +18,7 @@ Live URL: [https://game-wire.herokuapp.com/](https://game-wire.herokuapp.com/)
  Once you have the MongoDB installed, start it up. By default it should be running at `localhost` and on port `27017`.
   
    On linux or mac, you can start MongoDB using - `$ sudo mongod`
-   
+
 2. Then clone the repository to your local machine:
 
     ```bash
@@ -88,3 +88,6 @@ You just need to start up the Python app located in the `app/` folder.
     ```
 
 And that's it, this will create a new folder named `dist` that contains our JavaScript and CSS files optimised for production. 
+
+## Important links
+- [Twilio Programmable Chat documentation](https://media.twiliocdn.com/sdk/js/chat/releases/3.0.2/docs/index.html)

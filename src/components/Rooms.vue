@@ -29,7 +29,7 @@ export default {
     return {
         rooms: [
             {
-                id: 1, name: 'The Winnersue', avatar: 'https://picsum.photos/250/300?image=783',
+                id: 1, name: 'The Winnersue5', avatar: 'https://picsum.photos/250/300?image=783',
             },
             {
                 id: 2, name: 'Remote Controlue', avatar: 'https://picsum.photos/250/300?image=783',

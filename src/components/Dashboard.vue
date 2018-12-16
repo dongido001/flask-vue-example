@@ -34,7 +34,11 @@
                     </v-card-text>
                 </v-card>
 
-                <ChatRoom :messages="chat_messages" v-on:new-message="addMessage"/>
+                <ChatRoom 
+                  :messages="chat_messages" 
+                  v-on:new-message="addMessage" 
+                  :chat_loading="chat_loading"
+                />
             </v-flex>
 
             <v-flex xs6>
@@ -104,6 +108,7 @@ export default {
       chat: null,
       authenticated: true,
       video_room_loading: false,
+      chat_loading: false,
       active_room: null,
       video_client: null,
       room_name: null,
@@ -178,7 +183,8 @@ export default {
             } 
 
             this.video_room_loading = true
-            VueThis.room_name = null
+            this.chat_loading = true
+            this.room_name = null
 
             const token = data.data.token
 
@@ -200,6 +206,7 @@ export default {
                         .then( channels => { /*this.channels = channels.state.items } */ });
                     this.chat_client = client;
                     this.addChannel(room_name)
+                    this.chat_loading = false;
                 });
 
             Video.connect(token , connectOptions).then( room => {
@@ -263,21 +270,25 @@ export default {
 
      // FUNCTIONS FOR CHAT
      async setupChannel(channel) {
+      this.chat_channel = channel;
       channel.decline() // Unsubscribe from events
           .then( (channel) => {
               // Then join the channel
               channel.join().then( (channel) => {
-                  this.chat_channel = channel; // Set it global
                   channel.getMessages().then( messages => {
                       this.chat_messages = messages.items;
                   });
 
                   // Listen for new messages sent to the channel
                   channel.on('messageAdded', (message) => {
-                    console.log(message)
                     this.chat_messages.push(message.state);
                   });
               }).catch( (err) => {
+                  // Listen for new messages sent to the channel
+                  channel.on('messageAdded', (message) => {
+                    this.chat_messages.push(message.state);
+                  });
+
                   // If there is error joining the room,
                   // get all messages on the channel
                   channel.getMessages().then( messages => {
@@ -288,19 +299,17 @@ export default {
     },
     addMessage(message) {
       if (this.chat_channel) {
+        console.log(this.chat_channel)
         this.chat_channel.sendMessage(message);
       }
     },
     async addChannel(uniqueName) {
         this.chat_client.createChannel({ uniqueName: uniqueName})
-              .then(channel => {
-                this.setupChannel(channel)
-              })
+              .then(channel => (this.setupChannel(channel)) ) 
               .catch(error => {
-                // Channel already exists,
-                // Get channel by name, then call the bellow function
-                // this.setupChannel(channel) 
-                console.log(error)
+                this.chat_client.getChannelByUniqueName(uniqueName)
+                  .then( channel => (this.setupChannel(channel)) )
+                  .catch( err => (console.log(err.message)) )
               });
       }
     // END FUNCTIONS FOR CHAT
