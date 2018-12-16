@@ -34,7 +34,7 @@
                     </v-card-text>
                 </v-card>
 
-                <ChatRoom />
+                <ChatRoom :messages="chat_messages" v-on:new-message="addMessage"/>
             </v-flex>
 
             <v-flex xs6>
@@ -106,8 +106,10 @@ export default {
       video_room_loading: false,
       active_room: null,
       video_client: null,
+      room_name: null,
       chat_client: null,
-      room_name: null
+      chat_channel: null,
+      chat_messages: []
     }
   },
   props: ['email'],
@@ -197,6 +199,7 @@ export default {
                     client.getPublicChannelDescriptors()
                         .then( channels => { /*this.channels = channels.state.items } */ });
                     this.chat_client = client;
+                    this.addChannel(room_name)
                 });
 
             Video.connect(token , connectOptions).then( room => {
@@ -256,7 +259,51 @@ export default {
      },
      dispatchLog(message) {
         EventBus.$emit('new_log', message);
-     }
+     },
+
+     // FUNCTIONS FOR CHAT
+     async setupChannel(channel) {
+      channel.decline() // Unsubscribe from events
+          .then( (channel) => {
+              // Then join the channel
+              channel.join().then( (channel) => {
+                  this.chat_channel = channel; // Set it global
+                  channel.getMessages().then( messages => {
+                      this.chat_messages = messages.items;
+                  });
+
+                  // Listen for new messages sent to the channel
+                  channel.on('messageAdded', (message) => {
+                    console.log(message)
+                    this.chat_messages.push(message.state);
+                  });
+              }).catch( (err) => {
+                  // If there is error joining the room,
+                  // get all messages on the channel
+                  channel.getMessages().then( messages => {
+                      this.chat_messages = messages.items;
+                  });
+              });
+          });
+    },
+    addMessage(message) {
+      if (this.chat_channel) {
+        this.chat_channel.sendMessage(message);
+      }
+    },
+    async addChannel(uniqueName) {
+        this.chat_client.createChannel({ uniqueName: uniqueName})
+              .then(channel => {
+                this.setupChannel(channel)
+              })
+              .catch(error => {
+                // Channel already exists,
+                // Get channel by name, then call the bellow function
+                // this.setupChannel(channel) 
+                console.log(error)
+              });
+      }
+    // END FUNCTIONS FOR CHAT
   }
 }
 </script>

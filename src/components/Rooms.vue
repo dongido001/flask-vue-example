@@ -29,16 +29,16 @@ export default {
     return {
         rooms: [
             {
-                id: 1, name: 'The Winners', avatar: 'https://picsum.photos/250/300?image=783',
+                id: 1, name: 'The Winnersue', avatar: 'https://picsum.photos/250/300?image=783',
             },
             {
-                id: 2, name: 'Remote Control', avatar: 'https://picsum.photos/250/300?image=783',
+                id: 2, name: 'Remote Controlue', avatar: 'https://picsum.photos/250/300?image=783',
             },
             {
-                id: 3, name: 'Team Fabulous', avatar: 'https://picsum.photos/250/300?image=783',
+                id: 3, name: 'Team Fabulousue', avatar: 'https://picsum.photos/250/300?image=783',
             },
             {
-                id: 4, name: 'Slow Down', avatar: 'https://picsum.photos/250/300?image=783',
+                id: 4, name: 'Slow Downue', avatar: 'https://picsum.photos/250/300?image=783',
             }
         ],
         roomCount: 4,

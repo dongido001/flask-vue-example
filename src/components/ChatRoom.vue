@@ -7,12 +7,12 @@
                 class="chat-message" 
                 v-for="(message, index) in messages" 
                 :key="index"
-                :class=" (message.float == 'right') ? 'right': '' "
+                :class=" (message.author == email) ? 'right': '' "
             >
                 <v-list-tile-avatar class="circle">
                     <img src="https://picsum.photos/250/300?image=783">
                 </v-list-tile-avatar>
-                {{message.message}}
+                {{message.body}}
             </div>
         </v-card-text>
 
@@ -20,7 +20,7 @@
             <v-layout row wrap>
                 <v-flex xs12 md12>
                 <v-textarea
-                    v-model="chat"
+                    v-model="message"
                     box
                     label="message"
                     rows="1"
@@ -28,7 +28,7 @@
                 ></v-textarea>
                 </v-flex>
                 <button type="submit" style="margin-left: -30px; z-index: 3;">
-                    <i class="material-icons">send</i>
+                    <i class="material-icons" @click="sendMessage(message)">send</i>
                 </button>
             </v-layout>
         </v-container>
@@ -38,30 +38,22 @@
 <script>
 export default {
     name: "ChatRoom",
+    props: {
+        email: String,
+        messages: Array,
+    },
     data() {
         return {
-            messages: [
-                {
-                    id: 1, 
-                    message: 
-                        `Lo-fi you probably haven't heard of them etsy leggings raclette kickstarter four dollar toast. 
-                            Raw denim fingerstache food truck chia health goth synth. Forage man bun intelligentsia freegan 
-                            PBR&B banh mi asymmetrical chambray.`,
-                    float: 'left',
-                     image: 'https://picsum.photos/250/300?image=783'
-                 },
-                {
-                    id: 2, 
-                    message: `Raw denim fingerstache food truck chia health goth synth.`,
-                    float: 'right',
-                    image: 'https://picsum.photos/250/300?image=783'
-                },   
-            ]
+            message: "",
         }
     },
-    created() {
-      console.log('component created...')
-    }
+    methods: {
+      sendMessage(message) {
+        this.message = ""
+        this.$emit('new-message', message)
+      }
+    },
+    created() {}
 }
 </script>
 
