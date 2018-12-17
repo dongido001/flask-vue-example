@@ -8,15 +8,15 @@ from twilio.jwt.access_token.grants import VideoGrant, ChatGrant
 
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
-    get_jwt_identity
+    get_jwt_identity, get_jwt_claims
 )
 
 import pprint
 import os
 
-
 app = Flask(__name__, static_folder='../dist', static_url_path='')
 
+app.config['SECRET_KEY'] = 'super-secret'  # Change this!
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
 app.config['DEBUG'] = True
 app.config['MONGODB_DB'] = os.getenv("MONGODB_DB", "vb")
@@ -97,11 +97,11 @@ def login():
 
     user_data = {
         'email': email,
-        'role': _user.role
+        'role': _user.role.role
     }
 
     access_token = create_access_token(identity=user_data)
-    return jsonify(access_token=access_token, status="success"), 200
+    return jsonify(access_token=access_token, status="success", user_data=user_data), 200
 
 @app.route('/api/add_user', methods=['POST'])
 def add_new_user():
@@ -140,12 +140,12 @@ def add_new_user():
     new_user.save()
 
     user_data = {
-        'email': 'test',
-        'role': 'player'
+        'email': email,
+        'role': new_user.role.role
     }
 
     access_token = create_access_token(identity=user_data)
-    return jsonify(access_token=access_token, status="success"), 200
+    return jsonify(access_token=access_token, status="success", user_data=user_data), 200
     
 @app.route('/api/protected', methods=['GET'])
 @jwt_required

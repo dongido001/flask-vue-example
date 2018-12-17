@@ -26,7 +26,6 @@
 </template>
 
 <script>
-import { EventBus } from '../../Event'
 import axios from 'axios'
 
 export default {
@@ -52,16 +51,10 @@ export default {
         loading: false,
     }
   },
-  created() {
-    EventBus.$on('new_room', (data) => {
-        this.roomCount++;
-        this.rooms.push({id: this.roomCount, name: data});
-    });
-  },
   methods: {
     showRoom(room) {
         this.active_room = room
-        EventBus.$emit('show_room', room);
+        this.$emit('show_room', room);
     }
   }
 

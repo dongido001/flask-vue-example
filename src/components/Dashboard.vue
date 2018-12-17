@@ -15,7 +15,7 @@
       <v-container fluid fill-height>
         <v-layout row>
             <v-flex xs12 sm6 md2>
-                <Rooms />
+                <Rooms v-on:show_room="createChat"/>
                 <Rooms />
             </v-flex>
 
@@ -38,7 +38,7 @@
                   :messages="chat_messages" 
                   v-on:new-message="addMessage" 
                   :chat_loading="chat_loading"
-                  :email="email"
+                  :email="logged_user_email"
                 />
             </v-flex>
 
@@ -46,14 +46,7 @@
                 <v-card dark tile flat color="red darken-4" class="card-height">
                     <v-toolbar-title>Master Video Feed</v-toolbar-title>
                     <v-card-text>
-                        <v-progress-circular
-                          :size="70"
-                          :width="7"
-                          indeterminate
-                          v-if="video_room_loading"
-                          class="video-loading"
-                        ></v-progress-circular>
-                        <div id="master-video" v-else></div>
+                        <div id="master-video"></div>
                     </v-card-text>
                 </v-card>
 
@@ -88,6 +81,7 @@
 const Chat = require('twilio-chat')
 import Video from 'twilio-video'
 import axios from 'axios'
+import { mapState } from 'vuex'
 
 import { EventBus } from '../../Event'
 import Rooms from './Rooms'
@@ -101,13 +95,9 @@ export default {
     Footer,
     ChatRoom
   },
-    props: {
-        email: String
-    },
   data () {
     return {
       chat: null,
-      authenticated: true,
       video_room_loading: false,
       chat_loading: false,
       active_room: null,
@@ -115,33 +105,38 @@ export default {
       room_name: null,
       chat_client: null,
       chat_channel: null,
-      chat_messages: []
+      chat_messages: [],
+      twilio_access_token: null,
     }
   },
-  props: ['email'],
   created() {
-    EventBus.$on('show_room', (room) => {
-        this.createChat(room);
-    })
-
     // this.createChat('master');
 
     // When we are about to transition away from this page, disconnect
     // from the room, if joined.
     window.addEventListener('beforeunload', this.leaveRoomIfJoined);
-
-    console.log(this.$http)
-
+  },
+  computed: {
+    ...mapState({
+        logged_user_email: state => state.logged_user_email,
+        token: state => state.token,
+        role: state => state.role
+    })
   },
   methods: {
-    setAuthenticated(access_token) {
-      localStorage.auth = access_token
-      this.authenticated = true
-    },
     async getAccessToken() {
+
+      if (this.twilio_access_token) {
+        return new Promise( (resolve, reject) => {
+            resolve({
+                data: {token: this.twilio_access_token}
+            })
+        });
+      }
+
       return await axios
                     .post("/api/generate_video_token", {
-                      identity: this.email,
+                      identity: this.logged_user_email,
                     })
     },
     // Attach the Tracks to the DOM.
@@ -176,8 +171,8 @@ export default {
     },
     createChat(room_name) {
         this.loading = true;
-         
-        let VueThis = this
+
+        this.facilitatorRoom()
 
         this.getAccessToken().then( (data) => {
 
@@ -190,6 +185,7 @@ export default {
             this.room_name = null
 
             const token = data.data.token
+            this.twilio_access_token = token
 
             let connectOptions = {
                 name: room_name,
@@ -201,7 +197,7 @@ export default {
             this.leaveRoomIfJoined();
             
             // remove any remote track when joining a new room
-            // document.getElementById('remoteTrack').innerHTML = ""; 
+            document.getElementById('team-video').innerHTML = ""; 
 
             Chat.Client.create( token )
                 .then( (client) => {
@@ -213,64 +209,82 @@ export default {
                 });
 
             Video.connect(token , connectOptions).then( room => {
-
-                this.dispatchLog('Successfully joined a Room: '+ room_name);
-
                 // set active toom
                 this.active_room = room;
                 this.room_name = room_name;
                 this.video_room_loading = false
 
                 // Attach the Tracks of the Room's Participants.
-                room.participants.forEach(function(participant) {
+                room.participants.forEach( (participant) => {
                     console.log(participant)
                     let previewContainer = document.getElementById('team-video');
                     this.attachParticipantTracks(participant, previewContainer);
                 });
 
-                // When a Participant joins the Room, log the event.
-                room.on('participantConnected', function(participant) {
-                    this.dispatchLog("Joining: '" + participant.identity + "'");
-                });
-
                 // When a Participant adds a Track, attach it to the DOM.
-                room.on('trackSubscribed', function(track, participant) {
-                    this.dispatchLog(participant.identity + " added track: " + track.kind);
+                room.on('trackSubscribed', (track, participant) => {
                     let previewContainer = document.getElementById('team-video');
                     this.attachTracks([track], previewContainer);
                 });
                 
                 // When a Participant removes a Track, detach it from the DOM.
-                room.on('trackUnsubscribed', function(track, participant) {
-                    this.dispatchLog(participant.identity + " removed track: " + track.kind);
+                room.on('trackUnsubscribed', (track, participant) => {
                     this.detachTracks([track]);
                 });
 
                 // When a Participant leaves the Room, detach its Tracks.
-                room.on('participantDisconnected', function(participant) {
-                    this.dispatchLog("Participant '" + participant.identity + "' left the room");
+                room.on('participantDisconnected', (participant) => {
                     this.detachParticipantTracks(participant);
                 });
+                
+                // Add the user track
+                // if(!this.localTrack) {
+                //     Video.createLocalVideoTrack().then(track => {
+                //       console.group(track)
+                //       let localMediaContainer = document.getElementById('facilatator-video');
+                //       localMediaContainer.appendChild(track.attach());
 
-                if(!this.localTrack) {
-                    Video.createLocalVideoTrack().then(track => {
-                      console.group(track)
-                      let localMediaContainer = document.getElementById('master-video');
-                      localMediaContainer.appendChild(track.attach());
-
-                      this.localTrack = true;
-                    });
-                }
+                //       this.localTrack = true;
+                //     });
+                // }
             }, function(error) {
                 console.error('Unable to connect to Room: ' +  error.message);
             });
 
           });
      },
-     dispatchLog(message) {
-        EventBus.$emit('new_log', message);
-     },
+     facilitatorRoom() {
+         this.getAccessToken().then( data => {
+            let connectOptions = {
+                name: 'facilltator-room',
+                // logLevel: 'debug',
+                audio: true, 
+                video: { width: 120, height: 120 }
+            };
 
+            if(!this.localTrack && (this.role == 'facilitator') ) {
+                Video.createLocalVideoTrack().then(track => {
+                    console.group(track)
+                    let localMediaContainer = document.getElementById('master-video');
+                    localMediaContainer.appendChild(track.attach());
+                });
+            }
+
+            Video.connect(data.data.token , connectOptions).then( room => {
+
+                // Attach the Tracks of the Room's Participants.
+                room.participants.forEach(participant => {
+                    console.log(participant)
+                    let previewContainer = document.getElementById('team-video');
+                    this.attachParticipantTracks(participant, previewContainer);
+                });
+            }, function(error) {
+                console.error('Unable to connect to Room: ' +  error.message);
+            });
+         })
+
+        // this.createChat('facilator-room');
+     },
      // FUNCTIONS FOR CHAT
      async setupChannel(channel) {
       this.chat_channel = channel;
@@ -302,7 +316,6 @@ export default {
     },
     addMessage(message) {
       if (this.chat_channel) {
-        console.log(this.chat_channel)
         this.chat_channel.sendMessage(message);
       }
     },

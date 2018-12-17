@@ -18,4 +18,4 @@ class User(db.Document):
         return check_password_hash(self.password, password)
 
     def __repr__(self):
-        return '<User %r>' % (self.username)
+        return '<User %r>' % (self.email)

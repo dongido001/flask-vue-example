@@ -27,7 +27,7 @@
 </template>
 
 <script>
-  import { mapMutations } from 'vuex'
+  import { mapActions } from 'vuex'
 
   export default {
     data: () => ({
@@ -49,9 +49,11 @@
                 .then(response => {
                     if (response.data.status == "success") {
                         const access_token = response.data.access_token
+                        const user_data = response.data.user_data
+
                         this.proccessing = false;
 
-                        this.$emit("authenticated", access_token, this.email);
+                        this.updateUserRole(user_data.role)
                         this.updateAccessToken(access_token)
                         this.updateLoggedUserEmail(this.email)
 
@@ -65,8 +67,9 @@
                     this.proccessing = false;
                 });
         },
-        ...mapMutations({
+        ...mapActions({
           updateLoggedUserEmail: 'updateLoggedUserEmail',
+          updateUserRole: 'updateUserRole',
           updateAccessToken: 'updateAccessToken', // map this.updateAccessToken(access_token) 
                                                   // to this.$store.commit('updateAccessToken', access_token)
         })

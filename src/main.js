@@ -20,7 +20,11 @@ const store = new Vuex.Store(stores)
 
 router.beforeEach((to, from, next) => {
   if (!publicPages.includes(to.path)) {
-    if (!localStorage.getItem('token')) return next('/login')
+    if ( !(localStorage.getItem('token') && localStorage.getItem('logged_user_email')) ){
+      localStorage.removeItem('token')
+      localStorage.removeItem('logged_user_email')
+      return next('/login')
+    }
   }
 
   next()
