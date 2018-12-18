@@ -273,10 +273,19 @@ export default {
             Video.connect(data.data.token , connectOptions).then( room => {
 
                 // Attach the Tracks of the Room's Participants.
+                // First Check if the user is a facilitator
                 room.participants.forEach(participant => {
                     console.log(participant)
+                    this.$http.get`'/api/get_user_details?email=this.logged_user_email`)
+                        .then( data => {
+                            console.log(data)
+                           // if (participant.identity == ) {
+
+                          //  }
+                        })
+
                     let previewContainer = document.getElementById('team-video');
-                    this.attachParticipantTracks(participant, previewContainer);
+                    this.attachParticipantTracks(participant, previewContainer)
                 });
             }, function(error) {
                 console.error('Unable to connect to Room: ' +  error.message);

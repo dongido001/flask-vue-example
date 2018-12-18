@@ -147,11 +147,12 @@ def add_new_user():
     access_token = create_access_token(identity=user_data)
     return jsonify(access_token=access_token, status="success", user_data=user_data), 200
     
-@app.route('/api/protected', methods=['GET'])
-@jwt_required
-def protected():
-    current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
+@app.route('/api/get_user_detail', methods=['GET'])
+# @jwt_required
+def get_user_detail():
+    email = request.args.get('email')
+    user = User.objects(email=email).first()
+    return jsonify(user=user), 200
 
 @app.route('/api/add_role')
 def add_role():
