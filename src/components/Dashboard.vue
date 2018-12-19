@@ -265,8 +265,7 @@ export default {
             if(!this.localTrack && (this.role == 'facilitator') ) {
                 Video.createLocalVideoTrack().then(track => {
                     let localMediaContainer = document.getElementById('master-video');
-                    localMediaContainer.appendChild(track.attach());uka@MBP:~$ heroku run bash --app game-wire
-Running bas
+                    localMediaContainer.appendChild(track.attach());
                 });
 
             }
