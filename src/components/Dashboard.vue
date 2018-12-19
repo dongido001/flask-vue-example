@@ -264,28 +264,25 @@ export default {
 
             if(!this.localTrack && (this.role == 'facilitator') ) {
                 Video.createLocalVideoTrack().then(track => {
-                    console.group(track)
                     let localMediaContainer = document.getElementById('master-video');
-                    localMediaContainer.appendChild(track.attach());
+                    localMediaContainer.appendChild(track.attach());uka@MBP:~$ heroku run bash --app game-wire
+Running bas
                 });
+
             }
 
             Video.connect(data.data.token , connectOptions).then( room => {
-
-                // Attach the Tracks of the Room's Participants.
+                // Attach the Tracks of the Facilitator.
                 // First Check if the user is a facilitator
                 room.participants.forEach(participant => {
-                    console.log(participant)
-                    this.$http.get`'/api/get_user_details?email=this.logged_user_email`)
+                    this.$http.get(`/api/get_user_details?email=${this.logged_user_email}`)
                         .then( data => {
-                            console.log(data)
-                           // if (participant.identity == ) {
-
-                          //  }
+                            if ( data.data.role != 'facilitator') {
+                                let previewContainer = document.getElementById('master-video');
+                                this.attachParticipantTracks(participant, previewContainer)
+                            }
                         })
 
-                    let previewContainer = document.getElementById('team-video');
-                    this.attachParticipantTracks(participant, previewContainer)
                 });
             }, function(error) {
                 console.error('Unable to connect to Room: ' +  error.message);
