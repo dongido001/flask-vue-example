@@ -16,7 +16,7 @@
         <v-layout row>
             <v-flex xs12 sm6 md2>
                 <Rooms v-on:show_room="createChat"/>
-                <Rooms />
+                <Players :players="players" />
             </v-flex>
 
             <v-flex xs6>
@@ -30,7 +30,9 @@
                           v-if="video_room_loading"
                           class="video-loading"
                         ></v-progress-circular>
-                        <div id="team-video" v-else></div>
+                        <div id="team-video" v-else>
+                            <div id="local-video"></div>
+                        </div>
                     </v-card-text>
                 </v-card>
 
@@ -85,6 +87,7 @@ import { mapState } from 'vuex'
 
 import { EventBus } from '../../Event'
 import Rooms from './Rooms'
+import Players from './Players'
 import Footer from './Footer'
 import ChatRoom from './ChatRoom'
 
@@ -93,7 +96,8 @@ export default {
   components: {
     Rooms,
     Footer,
-    ChatRoom
+    ChatRoom,
+    Players
   },
   data () {
     return {
@@ -107,6 +111,7 @@ export default {
       chat_channel: null,
       chat_messages: [],
       twilio_access_token: null,
+      players: []
     }
   },
   created() {
@@ -134,7 +139,7 @@ export default {
         });
       }
 
-      return await axios
+      return await this.$http
                     .post("/api/generate_video_token", {
                       identity: this.logged_user_email,
                     })
@@ -191,7 +196,7 @@ export default {
                 name: room_name,
                 // logLevel: 'debug',
                 audio: true, 
-                video: { width: 120, height: 120 }
+                video: { width: 150, height: 150 }
             };
 
             this.leaveRoomIfJoined();
@@ -216,13 +221,20 @@ export default {
 
                 // Attach the Tracks of the Room's Participants.
                 room.participants.forEach( (participant) => {
-                    console.log(participant)
+                    this.$http.get(`/api/get_user_details?email=${participant.identity}`)
+                         .then( data => {
+                            this.players.push(data.data.user);
+                         })
                     let previewContainer = document.getElementById('team-video');
                     this.attachParticipantTracks(participant, previewContainer);
                 });
 
                 // When a Participant adds a Track, attach it to the DOM.
                 room.on('trackSubscribed', (track, participant) => {
+                    this.$http.get(`/api/get_user_details?email=${participant.identity}`)
+                         .then( data => {
+                            this.players.push(data.data.user);
+                         })
                     let previewContainer = document.getElementById('team-video');
                     this.attachTracks([track], previewContainer);
                 });
@@ -234,19 +246,17 @@ export default {
 
                 // When a Participant leaves the Room, detach its Tracks.
                 room.on('participantDisconnected', (participant) => {
+                    this.players = this.players.filter( player => player.email != participant.identity)
                     this.detachParticipantTracks(participant);
                 });
                 
-                // Add the user track
-                // if(!this.localTrack) {
-                //     Video.createLocalVideoTrack().then(track => {
-                //       console.group(track)
-                //       let localMediaContainer = document.getElementById('facilatator-video');
-                //       localMediaContainer.appendChild(track.attach());
+                // Add the user local track
+                Video.createLocalVideoTrack().then(track => {
+                    let localMediaContainer = document.getElementById('local-video');
+                    localMediaContainer.appendChild(track.attach());
 
-                //       this.localTrack = true;
-                //     });
-                // }
+                    this.localTrack = true;
+                });
             }, function(error) {
                 console.error('Unable to connect to Room: ' +  error.message);
             });
@@ -267,16 +277,15 @@ export default {
                     let localMediaContainer = document.getElementById('master-video');
                     localMediaContainer.appendChild(track.attach());
                 });
-
             }
 
             Video.connect(data.data.token , connectOptions).then( room => {
                 // Attach the Tracks of the Facilitator.
                 // First Check if the user is a facilitator
                 room.participants.forEach(participant => {
-                    this.$http.get(`/api/get_user_details?email=${this.logged_user_email}`)
+                    this.$http.get(`/api/get_user_details?email=${participant.identity}`)
                         .then( data => {
-                            if ( data.data.role != 'facilitator') {
+                            if ( data.data.role != 'facilitator' ) {
                                 let previewContainer = document.getElementById('master-video');
                                 this.attachParticipantTracks(participant, previewContainer)
                             }
@@ -287,8 +296,6 @@ export default {
                 console.error('Unable to connect to Room: ' +  error.message);
             });
          })
-
-        // this.createChat('facilator-room');
      },
      // FUNCTIONS FOR CHAT
      async setupChannel(channel) {
@@ -352,6 +359,14 @@ export default {
     border: 1px solid red;
     overflow: hidden;
     margin: 10px;
+  }
+ #local-video {
+    position: relative;
+    margin: 0;
+    width: 150px;
+    height: 150px;
+    border: 1px solid red;
+    overflow: hidden;
   }
   .video-loading {
     margin-top: auto; 
