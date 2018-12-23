@@ -156,10 +156,10 @@ def get_user_detail():
 
 @app.route('/api/add_role')
 def add_role():
-    #new_role1 = Role(role="player")
-    #new_role2 = Role(role="admin")
-    #new_role3 = Role(role="facilitator")
-    #new_role1.save(); new_role2.save(); new_role3.save(); 
+    new_role1 = Role(role="player")
+    new_role2 = Role(role="admin")
+    new_role3 = Role(role="facilitator")
+    new_role1.save(); new_role2.save(); new_role3.save(); 
 
     pass
 
