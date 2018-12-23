@@ -3,7 +3,7 @@
     <router-view></router-view>
   </v-app>
 </template>
-
+div.home 
 <script>
 import { EventBus } from '../Event'
 
