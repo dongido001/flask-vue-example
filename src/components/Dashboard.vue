@@ -7,7 +7,7 @@
       app
     >
       <v-toolbar-side-icon ></v-toolbar-side-icon>
-      <v-toolbar-title>Toolbar</v-toolbar-title>
+      <v-toolbar-title>Toolbar Fun</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-side-icon ></v-toolbar-side-icon>
     </v-toolbar>
@@ -21,7 +21,7 @@
 
             <v-flex xs6>
                 <v-card dark tile flat color="" class="card-height">
-                    <v-toolbar-title>Team Video Feed</v-toolbar-title>
+                    <v-toolbar-title>Team Video Feeds</v-toolbar-title>
                     <v-card-text>
                         <v-progress-circular
                           :size="70"
@@ -363,8 +363,8 @@ export default {
  #local-video {
     position: relative;
     margin: 0;
-    width: 150px;
-    height: 150px;
+    width: 300px;
+    height: 300px;
     border: 1px solid red;
     overflow: hidden;
   }
