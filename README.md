@@ -1,6 +1,4 @@
-# Game Wire
-
-Live URL: [https://game-wire.herokuapp.com/](https://game-wire.herokuapp.com/)
+# A project demonstrating how to wire up Flask and Vue together
 
 ## How to install
 
